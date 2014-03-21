@@ -1,4 +1,4 @@
-# msx
+# msx [![Build Status](https://secure.travis-ci.org/insin/msx.png?branch=master)](http://travis-ci.org/insin/msx)
 
 [React](http://facebook.github.io/react/)'s JSX Transformer, tweaked to output
 calls to [Mithril](http://lhorie.github.io/mithril/)'s `m()` function in the

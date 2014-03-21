@@ -71,7 +71,7 @@ function visitReactTag(traverse, object, path, state) {
     console.error('WARNING: Saw an unknown tag name: ' + nameObject.name);
   }
   utils.append(
-    mObjIdent + "('" + (nameObject.name) + "'",
+    mObjIdent + '("' + (nameObject.name) + '"',
     state
   );
 
