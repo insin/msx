@@ -15,7 +15,7 @@
  *
  * To satisfy the Apache 2.0 License:
  *
- * THIS FILE WAS MODIFIED BY ME.
+ * THIS FILE WAS MODIFIED BY ME (https://github.com/insin)
  *
  * (Prominent!)
  */

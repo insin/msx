@@ -1,6 +1,6 @@
 {
   "name": "msx",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "JSX for Mithril",
   "main": "main.js",
   "dependencies": {
@@ -23,5 +23,10 @@
     "type": "git",
     "url": "git://github.com/insin/msx.git"
   },
-  "license": "MIT"
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ]
 }

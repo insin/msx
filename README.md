@@ -13,19 +13,21 @@ Other than that, the test of React's JSX documentation should still apply:
 
 * [React | JSX in Depth](http://facebook.github.io/react/docs/jsx-in-depth.html)
 
-**msx 0.1.0** is based on **JSX Transformer 0.10.0-rc1**.
+**msx 0.1.1** is based on **JSX Transformer 0.10.0-rc1**.
 
-Install:
+### Install
 
 ```
 npm install msx
 ```
 
-Require:
+### Require
 
 ```
 var msx = require('msx')
 ```
+
+### API
 
 #### `msx.transform(source)`
 
@@ -45,3 +47,7 @@ and [test/js](https://github.com/insin/msx/tree/master/test/js), respectively.
 
 An example [gulpfile.js](https://github.com/insin/msx/blob/master/gulpfile.js) is
 provided, which implements an `msxTransform()` function using `msx.transform()`.
+
+---
+
+Apache 2.0 Licensed, as per React
