@@ -9,7 +9,7 @@ Only output has been tweaked, but there's no special treatment for custom tag
 names - the transformer will output a warning if it sees an unknown tag name but
 output an `m()` call anyway.
 
-Other than that, the test of React's JSX documentation should still apply:
+Other than that, the rest of React's JSX documentation should still apply:
 
 * [React | JSX in Depth](http://facebook.github.io/react/docs/jsx-in-depth.html)
 
