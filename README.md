@@ -30,7 +30,7 @@ var msx = require('msx')
 #### `msx.transform(source)`
 
 Transforms XML-like syntax in the given source into native JavaScript function
-calls using Mithril's `m()` function, returning the given source.
+calls using Mithril's `m()` function, returning the transformed source.
 
 Put the following jsx pragma at the beginning of files you want to process:
 
