@@ -1,2 +1,4 @@
+.gitignore
+.travis.yml
 test
 gulpfile.js
