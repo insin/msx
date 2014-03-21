@@ -12,6 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * To satisfy the Apache 2.0 License:
+ *
+ * THIS FILE WAS MODIFIED BY ME.
+ *
+ * (Prominent!)
  */
 /*global exports:true*/
 "use strict";
@@ -48,7 +54,7 @@ var JSX_ATTRIBUTE_TRANSFORMS = {
 };
 
 function visitReactTag(traverse, object, path, state) {
-  var jsxObjIdent = utils.getDocblock(state).jsx;
+  var mObjIdent = utils.getDocblock(state).jsx;
   var openingElement = object.openingElement;
   var nameObject = openingElement.name;
   var attributesObject = openingElement.attributes;
@@ -61,16 +67,19 @@ function visitReactTag(traverse, object, path, state) {
   }
 
   var isFallbackTag = FALLBACK_TAGS.hasOwnProperty(nameObject.name);
+  if (!isFallbackTag) {
+    console.error('WARNING: Saw an unknown tag name: ' + nameObject.name);
+  }
   utils.append(
-    (isFallbackTag ? jsxObjIdent + '.' : '') + (nameObject.name) + '(',
+    mObjIdent + "('" + (nameObject.name) + "'",
     state
   );
 
   utils.move(nameObject.range[1], state);
 
-  // if we don't have any attributes, pass in null
-  if (attributesObject.length === 0) {
-    utils.append('null', state);
+  // if we have some attributes, add a comma
+  if (attributesObject.length > 0) {
+    utils.append(',', state);
   }
 
   // write attributes
@@ -132,6 +141,8 @@ function visitReactTag(traverse, object, path, state) {
              && typeof child.value === 'string'
              && child.value.match(/^[ \t]*[\r\n][ \t\r\n]*$/));
   });
+
+  var renderedChildren = false;
   if (childrenToRender.length > 0) {
     var lastRenderableIndex;
 
@@ -143,7 +154,8 @@ function visitReactTag(traverse, object, path, state) {
     });
 
     if (lastRenderableIndex !== undefined) {
-      utils.append(', ', state);
+      utils.append(', [', state);
+      renderedChildren = true;
     }
 
     childrenToRender.forEach(function(child, index) {
@@ -177,6 +189,9 @@ function visitReactTag(traverse, object, path, state) {
     utils.move(object.closingElement.range[1], state);
   }
 
+  if (renderedChildren) {
+    utils.append(']', state);
+  }
   utils.append(')', state);
   return false;
 }
