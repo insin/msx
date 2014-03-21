@@ -13,11 +13,32 @@ Other than that, the test of React's JSX documentation should still apply:
 
 * [React | JSX in Depth](http://facebook.github.io/react/docs/jsx-in-depth.html)
 
+**msx 0.1.0** is based on **JSX Transformer 0.10.0-rc1**.
+
+Install:
+
+```
+npm install msx
+```
+
+Require:
+
+```
+var msx = require('msx')
+```
+
+#### `msx.transform(source)`
+
+Transforms XML-like syntax in the given source into native JavaScript function
+calls using Mithril's `m()` function, returning the given source.
+
 Put the following jsx pragma at the beginning of files you want to process:
 
 ```javascript
 /** @jsx m */
 ```
+
+### Examples
 
 Example inputs and outputs are in [test/jsx](https://github.com/insin/msx/tree/master/test/jsx)
 and [test/js](https://github.com/insin/msx/tree/master/test/js), respectively.
