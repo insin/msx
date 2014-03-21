@@ -1,0 +1,27 @@
+{
+  "name": "msx",
+  "version": "0.1.0-alpha",
+  "description": "JSX for Mithril",
+  "main": "main.js",
+  "dependencies": {
+    "esprima-fb": "~3001.1.0-dev-harmony-fb",
+    "jstransform": "~3.0.0"
+   },
+  "devDependencies": {
+    "gulp": "~3.5.6",
+    "gulp-plumber": "^0.5.6",
+    "gulp-rename": "^1.2.0",
+    "gulp-util": "~2.2.14",
+    "through2": "~0.4.1"
+  },
+  "keywords": [
+    "jsx",
+    "mithril"
+  ],
+  "author": "Jonathan Buchanan <jonathan.buchanan@gmail.com> (https://github.com/insin)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/insin/msx.git"
+  },
+  "license": "MIT"
+}
