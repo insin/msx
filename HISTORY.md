@@ -1,3 +1,7 @@
+### 0.1.3
+
+* Added `msx` command when installed globally.
+
 ### 0.1.2
 
 * Changed tag name string to use double quotes for consistency with other text
