@@ -80,6 +80,9 @@ function visitReactTag(traverse, object, path, state) {
   // if we have some attributes, add a comma
   if (attributesObject.length > 0) {
     utils.append(', attrs:', state);
+  } else {
+    // mithril expects an "attrs" property on pre-compiled templates
+    utils.append(', attrs: {}', state)
   }
 
   // write attributes

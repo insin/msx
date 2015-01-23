@@ -22,7 +22,7 @@ function view(ctrl) {
           onclick:m.withAttr('checked', task.completed),
           checked:task.completed()}
         },
-        {tag: "label", children: [task.title()]},
+        {tag: "label", attrs: {}, children: [task.title()]},
         {tag: "button", attrs: {className:"destroy", onclick:ctrl.remove.bind(ctrl, index)}}
       ]},
       {tag: "input", attrs: {className:"edit"}}
@@ -31,7 +31,7 @@ function view(ctrl) {
 
   return {tag: "div", attrs: {id:"todoapp"}, children: [
     {tag: "header", attrs: {id:"header"}, children: [
-      {tag: "h1", children: ["todos"]},
+      {tag: "h1", attrs: {}, children: ["todos"]},
       {tag: "input", attrs:
         {id:"new-todo",
         placeholder:"What needs to be done?",
@@ -47,16 +47,16 @@ function view(ctrl) {
     ]},
     {tag: "footer", attrs: {id:"footer"}, children: [
       {tag: "span", attrs: {id:"todo-count"}, children: [
-        {tag: "strong", children: [ctrl.list.length, " item",ctrl.list.length > 1 ? 's' : '', " left"]}
+        {tag: "strong", attrs: {}, children: [ctrl.list.length, " item",ctrl.list.length > 1 ? 's' : '', " left"]}
       ]},
       {tag: "ul", attrs: {id:"filters"}, children: [
         {tag: "li", attrs: {className:"selected"}, children: [
           {tag: "a", attrs: {href:"#/"}, children: ["All"]}
         ]},
-        {tag: "li", children: [
+        {tag: "li", attrs: {}, children: [
           {tag: "a", attrs: {href:"#/active"}, children: ["Active"]}
         ]},
-        {tag: "li", children: [
+        {tag: "li", attrs: {}, children: [
           {tag: "a", attrs: {href:"#/completed"}, children: ["Completed"]}
         ]}
       ]},
