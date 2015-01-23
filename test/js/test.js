@@ -8,61 +8,61 @@
 function view(ctrl) {
   var clearCompleted
   if (ctrl.amountCompleted() != 0) {
-    clearCompleted = m("button", {id:"clear-completed", onclick:ctrl.clearCompleted.bind(ctrl)}, [
+    clearCompleted = {tag: "button", attrs: {id:"clear-completed", onclick:ctrl.clearCompleted.bind(ctrl)}, children: [
       "Clear completed (",ctrl.amountCompleted(),")"
-    ])
+    ]}
   }
 
   var todos = ctrl.list.map(function(task, index) {
-    return m("li", {className:task.completed() && 'completed'}, [
-      m("div", {className:"view"}, [
-        m("input",
+    return {tag: "li", attrs: {className:task.completed() && 'completed'}, children: [
+      {tag: "div", attrs: {className:"view"}, children: [
+        {tag: "input", attrs:
           {className:"toggle",
           type:"checkbox",
           onclick:m.withAttr('checked', task.completed),
           checked:task.completed()}
-        ),
-        m("label", [task.title()]),
-        m("button", {className:"destroy", onclick:ctrl.remove.bind(ctrl, index)})
-      ]),
-      m("input", {className:"edit"})
-    ])
+        },
+        {tag: "label", children: [task.title()]},
+        {tag: "button", attrs: {className:"destroy", onclick:ctrl.remove.bind(ctrl, index)}}
+      ]},
+      {tag: "input", attrs: {className:"edit"}}
+    ]}
   })
 
-  return m("div", {id:"todoapp"}, [
-    m("header", {id:"header"}, [
-      m("h1", ["todos"]),
-      m("input",
+  return {tag: "div", attrs: {id:"todoapp"}, children: [
+    {tag: "header", attrs: {id:"header"}, children: [
+      {tag: "h1", children: ["todos"]},
+      {tag: "input", attrs:
         {id:"new-todo",
         placeholder:"What needs to be done?",
         onkeydown:function(e) { m.withAttr('value', ctrl.title)(e); ctrl.add(ctrl.title, e) },
         value:ctrl.title()}
-      )
-    ]),
-    m("section", {id:"main"}, [
-      m("input", {id:"toggle-all", type:"checkbox"}),
-      m("ul", {id:"todo-list"}, [
+      }
+    ]},
+    {tag: "section", attrs: {id:"main"}, children: [
+      {tag: "input", attrs: {id:"toggle-all", type:"checkbox"}},
+      {tag: "ul", attrs: {id:"todo-list"}, children: [
         todos
-      ])
-    ]),
-    m("footer", {id:"footer"}, [
-      m("span", {id:"todo-count"}, [
-        m("strong", [ctrl.list.length, " item",ctrl.list.length > 1 ? 's' : '', " left"])
-      ]),
-      m("ul", {id:"filters"}, [
-        m("li", {className:"selected"}, [
-          m("a", {href:"#/"}, ["All"])
-        ]),
-        m("li", [
-          m("a", {href:"#/active"}, ["Active"])
-        ]),
-        m("li", [
-          m("a", {href:"#/completed"}, ["Completed"])
-        ])
-      ]),
+      ]}
+    ]},
+    {tag: "footer", attrs: {id:"footer"}, children: [
+      {tag: "span", attrs: {id:"todo-count"}, children: [
+        {tag: "strong", children: [ctrl.list.length, " item",ctrl.list.length > 1 ? 's' : '', " left"]}
+      ]},
+      {tag: "ul", attrs: {id:"filters"}, children: [
+        {tag: "li", attrs: {className:"selected"}, children: [
+          {tag: "a", attrs: {href:"#/"}, children: ["All"]}
+        ]},
+        {tag: "li", children: [
+          {tag: "a", attrs: {href:"#/active"}, children: ["Active"]}
+        ]},
+        {tag: "li", children: [
+          {tag: "a", attrs: {href:"#/completed"}, children: ["Completed"]}
+        ]}
+      ]},
       clearCompleted
-    ])
-  ])
+    ]}
+  ]}
 }
 
 module.exports = view

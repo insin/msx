@@ -5,16 +5,16 @@ var transform = require('../main').transform
 test('tag variations', function(t) {
   t.plan(10)
   var tagTests = {
-    '<br/>': 'm("br")'
-  , '<div/>': 'm("div")'
-  , '<div></div>': 'm("div")'
-  , '<div>X</div>': 'm("div", ["X"])'
-  , '<div>{X}</div>': 'm("div", [X])'
-  , '<div id="test"/>': 'm("div", {id:"test"})'
-  , '<div id="test" className="test">X</div>': 'm("div", {id:"test", className:"test"}, ["X"])'
-  , '<div>X{X} X {X}</div>': 'm("div", ["X",X, " X ", X])'
-  , '<div><p/></div>': 'm("div", [m("p")])'
-  , '<div><p id="test">X</p></div>': 'm("div", [m("p", {id:"test"}, ["X"])])'
+    '<br/>': '{tag: "br"}'
+  , '<div/>': '{tag: "div"}'
+  , '<div></div>': '{tag: "div"}'
+  , '<div>X</div>': '{tag: "div", children: ["X"]}'
+  , '<div>{X}</div>': '{tag: "div", children: [X]}'
+  , '<div id="test"/>': '{tag: "div", attrs: {id:"test"}}'
+  , '<div id="test" className="test">X</div>': '{tag: "div", attrs: {id:"test", className:"test"}, children: ["X"]}'
+  , '<div>X{X} X {X}</div>': '{tag: "div", children: ["X",X, " X ", X]}'
+  , '<div><p/></div>': '{tag: "div", children: [{tag: "p"}]}'
+  , '<div><p id="test">X</p></div>': '{tag: "div", children: [{tag: "p", attrs: {id:"test"}, children: ["X"]}]}'
   }
   var tags = Object.keys(tagTests)
   tags.forEach(function(tag) {

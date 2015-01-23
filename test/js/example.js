@@ -38,28 +38,28 @@ todo.controller = function() {
 
 //here's the view
 todo.view = function(ctrl) {
-  return m("html", [
-    m("body", [
-      m("input", {onchange:m.withAttr("value", ctrl.description), value:ctrl.description()}),
-      m("button", {onclick:ctrl.add.bind(ctrl, ctrl.description)}, ["Add"]),
-      m("table", [
+  return {tag: "html", children: [
+    {tag: "body", children: [
+      {tag: "input", attrs: {onchange:m.withAttr("value", ctrl.description), value:ctrl.description()}},
+      {tag: "button", attrs: {onclick:ctrl.add.bind(ctrl, ctrl.description)}, children: ["Add"]},
+      {tag: "table", children: [
         ctrl.list.map(function(task, index) {
-          return m("tr", [
-            m("td", [
-              m("input",
+          return {tag: "tr", children: [
+            {tag: "td", children: [
+              {tag: "input", attrs:
                 {type:"checkbox",
                 onclick:m.withAttr("checked", task.done),
                 checked:task.done()}
-               )
-            ]),
-            m("td", {style:{textDecoration: task.done() ? "line-through" : "none"}}, [
+               }
+            ]},
+            {tag: "td", attrs: {style:{textDecoration: task.done() ? "line-through" : "none"}}, children: [
               task.description()
-            ])
-          ])
+            ]}
+          ]}
         })
-      ])
-    ])
-  ])
+      ]}
+    ]}
+  ]}
 };
 
 //initialize the application

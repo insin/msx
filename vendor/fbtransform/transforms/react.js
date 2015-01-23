@@ -71,7 +71,7 @@ function visitReactTag(traverse, object, path, state) {
     console.error('WARNING: Saw an unknown tag name: ' + nameObject.name);
   }
   utils.append(
-    mObjIdent + '("' + (nameObject.name) + '"',
+    '{tag: "' + nameObject.name + '"',
     state
   );
 
@@ -79,7 +79,7 @@ function visitReactTag(traverse, object, path, state) {
 
   // if we have some attributes, add a comma
   if (attributesObject.length > 0) {
-    utils.append(',', state);
+    utils.append(', attrs:', state);
   }
 
   // write attributes
@@ -154,7 +154,7 @@ function visitReactTag(traverse, object, path, state) {
     });
 
     if (lastRenderableIndex !== undefined) {
-      utils.append(', [', state);
+      utils.append(', children: [', state);
       renderedChildren = true;
     }
 
@@ -192,7 +192,7 @@ function visitReactTag(traverse, object, path, state) {
   if (renderedChildren) {
     utils.append(']', state);
   }
-  utils.append(')', state);
+  utils.append('}', state);
   return false;
 }
 
