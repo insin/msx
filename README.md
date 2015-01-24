@@ -29,7 +29,7 @@ Put the following jsx pragma at the beginning of files you want to process:
 /** @jsx m */
 ```
 
-For known tag names, raw virtual DOM objects will be gnerated, matching the
+For known tag names, raw virtual DOM objects will be generated, matching the
 [`VirtualElement` signature](http://lhorie.github.io/mithril/mithril.render.html#signature)
 accepted by `m.render()` - this effectively
 [precompiles](http://lhorie.github.io/mithril/optimizing-performance.html) your
