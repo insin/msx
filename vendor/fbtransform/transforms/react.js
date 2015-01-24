@@ -53,7 +53,24 @@ var JSX_ATTRIBUTE_TRANSFORMS = {
   }
 };
 
+var mParts = {
+  startTag: function(tagFunc) { return tagFunc + '("' },
+  endTag: function() { return ')' },
+  startAttrs: function() { return ',' },
+  startChildren: function() { return ', [' }
+};
+
+var preCompileParts = {
+  startTag: function() { return '{tag: "' },
+  endTag: function() { return '}' },
+  startAttrs: function() { return ', attrs:' },
+  // mithril expects an "attrs" property on pre-compiled templates
+  emptyAttrs: function() { return ', attrs: {}' },
+  startChildren: function() { return ', children: [' }
+};
+
 function visitReactTag(traverse, object, path, state) {
+  var parts = preCompileParts;
   var mObjIdent = utils.getDocblock(state).jsx;
   var openingElement = object.openingElement;
   var nameObject = openingElement.name;
@@ -68,10 +85,11 @@ function visitReactTag(traverse, object, path, state) {
 
   var isFallbackTag = FALLBACK_TAGS.hasOwnProperty(nameObject.name);
   if (!isFallbackTag) {
-    console.error('WARNING: Saw an unknown tag name: ' + nameObject.name);
+    // Always generate m() calls for unknown tag names
+    parts = mParts;
   }
   utils.append(
-    '{tag: "' + nameObject.name + '"',
+    parts.startTag(mObjIdent) + nameObject.name + '"',
     state
   );
 
@@ -79,10 +97,9 @@ function visitReactTag(traverse, object, path, state) {
 
   // if we have some attributes, add a comma
   if (attributesObject.length > 0) {
-    utils.append(', attrs:', state);
-  } else {
-    // mithril expects an "attrs" property on pre-compiled templates
-    utils.append(', attrs: {}', state)
+    utils.append(parts.startAttrs(), state);
+  } else if ('emptyAttrs' in parts) {
+    utils.append(parts.emptyAttrs(), state);
   }
 
   // write attributes
@@ -157,7 +174,7 @@ function visitReactTag(traverse, object, path, state) {
     });
 
     if (lastRenderableIndex !== undefined) {
-      utils.append(', children: [', state);
+      utils.append(parts.startChildren(), state);
       renderedChildren = true;
     }
 
@@ -195,7 +212,7 @@ function visitReactTag(traverse, object, path, state) {
   if (renderedChildren) {
     utils.append(']', state);
   }
-  utils.append('}', state);
+  utils.append(parts.endTag(), state);
   return false;
 }
 

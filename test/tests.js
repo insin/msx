@@ -3,7 +3,7 @@ var test = require('tape').test
 var transform = require('../main').transform
 
 test('tag variations', function(t) {
-  t.plan(10)
+  t.plan(12)
   var tagTests = {
     '<br/>': '{tag: "br", attrs: {}}'
   , '<div/>': '{tag: "div", attrs: {}}'
@@ -15,6 +15,8 @@ test('tag variations', function(t) {
   , '<div>X{X} X {X}</div>': '{tag: "div", attrs: {}, children: ["X",X, " X ", X]}'
   , '<div><p/></div>': '{tag: "div", attrs: {}, children: [{tag: "p", attrs: {}}]}'
   , '<div><p id="test">X</p></div>': '{tag: "div", attrs: {}, children: [{tag: "p", attrs: {id:"test"}, children: ["X"]}]}'
+  , '<unknown>X</unknown>': 'm("unknown", ["X"])'
+  , '<unknown id="test">X</unknown>': 'm("unknown", {id:"test"}, ["X"])'
   }
   var tags = Object.keys(tagTests)
   tags.forEach(function(tag) {
