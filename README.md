@@ -45,10 +45,17 @@ var msx = require('msx')
 
 #### Module API
 
-##### `msx.transform(source)`
+##### `msx.transform(source: String[, options: Object])`
 
 Transforms XML-like syntax in the given source into native JavaScript function
 calls using Mithril's `m()` function, returning the transformed source.
+
+To enable ES6 transforms supported by JSX Transformer, pass a `harmony` option
+like so:
+
+```javascript
+msx.transform(source, {harmony: true})
+```
 
 ### Examples
 
