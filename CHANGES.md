@@ -1,3 +1,7 @@
+* Added a `no-precompile` option to the `msx` command.
+
+* Added a `precompile` option, defaulting to `true`.
+
 ## 0.2.0 / 2015-01-24
 
 * Known tag names are now precompiled to tag objects \[[liamcurry]\]

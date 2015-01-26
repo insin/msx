@@ -29,15 +29,16 @@ Put the following jsx pragma at the beginning of files you want to process:
 /** @jsx m */
 ```
 
-For known tag names, raw virtual DOM objects will be generated, matching the
+By default, raw virtual DOM objects - matching the
 [`VirtualElement` signature](http://lhorie.github.io/mithril/mithril.render.html#signature)
-accepted by `m.render()` - this effectively
-[precompiles](http://lhorie.github.io/mithril/optimizing-performance.html) your
-templates for a slight performance tweak.
+accepted by `m.render()` - will be generated for known tag names. This
+effectively [precompiles](http://lhorie.github.io/mithril/optimizing-performance.html)
+your templates for a slight performance tweak.
 
-For unknown tag names, an `m()` call will be generated. This should allow you to
-use msx if you're also using [Mithril.Elements](https://github.com/philtoms/mithril.elements)
-to implement custom types.
+For unknown tag names, an `m()` call will always be generated. This should allow
+you to use msx if you're also using
+[Mithril.Elements](https://github.com/philtoms/mithril.elements) to implement
+custom types.
 
 Other than that, the rest of React's JSX documentation should still apply:
 
@@ -54,6 +55,8 @@ npm install -g msx
 ```
 msx --watch src/ build/
 ```
+
+To disable precompilation from the command line, pass a `--no-precompile` flag.
 
 Run `msx --help` for more information.
 
@@ -79,6 +82,13 @@ To enable the subset of ES6 transforms supported by JSX Transformer, pass a
 
 ```javascript
 msx.transform(source, {harmony: true})
+```
+
+To disable ddefault precompilation and always output `m()` calls, pass a
+`precompile` option like so:
+
+```javascript
+msx.transform(source, {precompile: false})
 ```
 
 ### Examples

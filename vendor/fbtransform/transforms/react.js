@@ -69,8 +69,8 @@ var preCompileParts = {
   startChildren: function() { return ', children: [' }
 };
 
-function visitReactTag(traverse, object, path, state) {
-  var parts = preCompileParts;
+function visitReactTag(precompile, traverse, object, path, state) {
+  var parts = precompile ? preCompileParts : mParts;
   var mObjIdent = utils.getDocblock(state).jsx;
   var openingElement = object.openingElement;
   var nameObject = openingElement.name;
