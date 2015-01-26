@@ -84,7 +84,7 @@ To enable the subset of ES6 transforms supported by JSX Transformer, pass a
 msx.transform(source, {harmony: true})
 ```
 
-To disable ddefault precompilation and always output `m()` calls, pass a
+To disable default precompilation and always output `m()` calls, pass a
 `precompile` option like so:
 
 ```javascript
