@@ -1,3 +1,5 @@
+## 0.2.1 / 2015-01-26
+
 * Added a `no-precompile` option to the `msx` command.
 
 * Added a `precompile` option, defaulting to `true`.
