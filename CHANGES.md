@@ -1,3 +1,5 @@
+* Changed license back to MIT, now that React is licensed under BSD.
+
 * Merged in changes since JSX Transformer 0.10.0 up to the curent release
   version, 0.12.2:
   * The `/* @jsx m */` pragma is no longer needed - Mithril's `m()` function is

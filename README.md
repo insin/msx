@@ -107,4 +107,4 @@ Example inputs (using some ES6 features) and outputs are in
 An example [gulpfile.js](https://github.com/insin/msx/blob/master/gulpfile.js)
 is provided, which implements an `msxTransform()` step using `msx.transform()`.
 
-Apache 2.0 Licensed, as per React
+## MIT Licensed
