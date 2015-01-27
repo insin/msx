@@ -1,8 +1,5 @@
-/**
- * JSX version of the Mithril Getting Started documentation's TODO example.
- * http://lhorie.github.io/mithril/getting-started.html
- * @jsx m
- */
+// JSX version of the Mithril Getting Started documentation's TODO example.
+// http://lhorie.github.io/mithril/getting-started.html
 
 //this application only has one module: todo
 var todo = {};
@@ -40,23 +37,21 @@ todo.controller = function() {
 todo.view = function(ctrl) {
   return {tag: "html", attrs: {}, children: [
     {tag: "body", attrs: {}, children: [
-      {tag: "input", attrs: {onchange:m.withAttr("value", ctrl.description), value:ctrl.description()}},
-      {tag: "button", attrs: {onclick:ctrl.add.bind(ctrl, ctrl.description)}, children: ["Add"]},
+      {tag: "input", attrs: {onchange:m.withAttr("value", ctrl.description),value:ctrl.description()}}, 
+      {tag: "button", attrs: {onclick:ctrl.add.bind(ctrl, ctrl.description)}, children: ["Add"]}, 
       {tag: "table", attrs: {}, children: [
-        ctrl.list.map(function(task, index) {
-          return {tag: "tr", attrs: {}, children: [
-            {tag: "td", attrs: {}, children: [
-              {tag: "input", attrs:
-                {type:"checkbox",
-                onclick:m.withAttr("checked", task.done),
-                checked:task.done()}
-               }
-            ]},
-            {tag: "td", attrs: {style:{textDecoration: task.done() ? "line-through" : "none"}}, children: [
-              task.description()
-            ]}
+        ctrl.list.map(function(task, index)  {return {tag: "tr", attrs: {}, children: [
+          {tag: "td", attrs: {}, children: [
+            {tag: "input", attrs: {
+              type:"checkbox",
+              onclick:m.withAttr("checked", task.done),
+              checked:task.done()}
+             }
+          ]}, 
+          {tag: "td", attrs: {style:{textDecoration: task.done() ? "line-through" : "none"}}, children: [
+            task.description()
           ]}
-        })
+        ]};})
       ]}
     ]}
   ]}

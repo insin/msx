@@ -1,21 +1,14 @@
 /**
- * Copyright 2013-2014 Facebook, Inc.
+ * Copyright 2013-2014, Facebook, Inc.
+ * All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
  */
 /*global exports:true*/
 "use strict";
-var Syntax = require('esprima-fb').Syntax;
+var Syntax = require('jstransform').Syntax;
 var utils = require('jstransform/src/utils');
 
 var knownTags = {
@@ -92,6 +85,7 @@ var knownTags = {
   map: true,
   mark: true,
   marquee: true,
+  mask: false,
   menu: true,
   menuitem: true,
   meta: true,
@@ -106,6 +100,8 @@ var knownTags = {
   p: true,
   param: true,
   path: true,
+  pattern: false,
+  picture: true,
   polygon: true,
   polyline: true,
   pre: true,
@@ -143,6 +139,7 @@ var knownTags = {
   title: true,
   tr: true,
   track: true,
+  tspan: true,
   u: true,
   ul: true,
   'var': true,
@@ -181,7 +178,9 @@ function renderXJSLiteral(object, isLast, state, start, end) {
       trimmedLine = trimmedLine.replace(/[ ]+$/, '');
     }
 
+    if (!isFirstLine) {
     utils.append(line.match(/^[ \t]*/)[0], state);
+    }
 
     if (trimmedLine || isLastNonEmptyLine) {
       utils.append(
@@ -199,7 +198,7 @@ function renderXJSLiteral(object, isLast, state, start, end) {
       }
 
       // only restore tail whitespace if line had literals
-      if (trimmedLine) {
+      if (trimmedLine && !isLastLine) {
         utils.append(line.match(/[ \t]*$/)[0], state);
       }
     }
@@ -216,14 +215,15 @@ function renderXJSExpressionContainer(traverse, object, isLast, path, state) {
   // Plus 1 to skip `{`.
   utils.move(object.range[0] + 1, state);
   traverse(object.expression, path, state);
+
   if (!isLast && object.expression.type !== Syntax.XJSEmptyExpression) {
     // If we need to append a comma, make sure to do so after the expression.
-    utils.catchup(object.expression.range[1], state);
+    utils.catchup(object.expression.range[1], state, trimLeft);
     utils.append(',', state);
   }
 
   // Minus 1 to skip `}`.
-  utils.catchup(object.range[1] - 1, state);
+  utils.catchup(object.range[1] - 1, state, trimLeft);
   utils.move(object.range[1], state);
   return false;
 }
@@ -231,12 +231,17 @@ function renderXJSExpressionContainer(traverse, object, isLast, path, state) {
 function quoteAttrName(attr) {
   // Quote invalid JS identifiers.
   if (!/^[a-z_$][a-z\d_$]*$/i.test(attr)) {
-    return "'" + attr + "'";
+    return '"' + attr + '"';
   }
   return attr;
+}
+
+function trimLeft(value) {
+  return value.replace(/^[ ]+/, '');
 }
 
 exports.knownTags = knownTags;
 exports.renderXJSExpressionContainer = renderXJSExpressionContainer;
 exports.renderXJSLiteral = renderXJSLiteral;
 exports.quoteAttrName = quoteAttrName;
+exports.trimLeft = trimLeft;

@@ -1,7 +1,4 @@
-/**
- * JSX version of https://github.com/jpmonette/todomvc-mithril/blob/1d627f1d5dc0890d0a99cdcb16d09387f68f6df0/js/views/todo-view.js
- * @jsx m
- */
+// JSX version of https://github.com/jpmonette/todomvc-mithril/blob/1d627f1d5dc0890d0a99cdcb16d09387f68f6df0/js/views/todo-view.js
 
 'use strict';
 
@@ -13,21 +10,19 @@ function view(ctrl) {
     </button>
   }
 
-  var todos = ctrl.list.map(function(task, index) {
-    return <li className={task.completed() && 'completed'}>
-      <div className="view">
-        <input
-          className="toggle"
-          type="checkbox"
-          onclick={m.withAttr('checked', task.completed)}
-          checked={task.completed()}
-        />
-        <label>{task.title()}</label>
-        <button className="destroy" onclick={ctrl.remove.bind(ctrl, index)}/>
-      </div>
-      <input className="edit"/>
-    </li>
-  })
+  var todos = ctrl.list.map((task, index) => <li className={task.completed() && 'completed'}>
+    <div className="view">
+      <input
+        className="toggle"
+        type="checkbox"
+        onclick={m.withAttr('checked', task.completed)}
+        checked={task.completed()}
+      />
+      <label>{task.title()}</label>
+      <button className="destroy" onclick={ctrl.remove.bind(ctrl, index)}/>
+    </div>
+    <input className="edit"/>
+  </li>)
 
   return <div id="todoapp">
     <header id="header">

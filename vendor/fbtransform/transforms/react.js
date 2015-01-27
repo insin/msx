@@ -1,28 +1,14 @@
 /**
  * Copyright 2013-2014 Facebook, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * To satisfy the Apache 2.0 License:
- *
- * THIS FILE WAS MODIFIED BY ME (https://github.com/insin)
- *
- * (Prominent!)
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
  */
 /*global exports:true*/
 "use strict";
 
-var Syntax = require('esprima-fb').Syntax;
+var Syntax = require('jstransform').Syntax;
 var utils = require('jstransform/src/utils');
 
 var FALLBACK_TAGS = require('./xjs').knownTags;
@@ -31,89 +17,165 @@ var renderXJSExpressionContainer =
 var renderXJSLiteral = require('./xjs').renderXJSLiteral;
 var quoteAttrName = require('./xjs').quoteAttrName;
 
+var trimLeft = require('./xjs').trimLeft;
+
 /**
- * Customized desugar processor.
+ * Customized desugar processor for React JSX. Currently:
  *
- * Currently: (Somewhat tailored to React)
- * <X> </X> => X(null, null)
- * <X prop="1" /> => X({prop: '1'}, null)
- * <X prop="2"><Y /></X> => X({prop:'2'}, Y(null, null))
- * <X prop="2"><Y /><Z /></X> => X({prop:'2'}, [Y(null, null), Z(null, null)])
- *
- * Exceptions to the simple rules above:
- * if a property is named "class" it will be changed to "className" in the
- * javascript since "class" is not a valid object key in javascript.
+ * <X> </X> => React.createElement(X, null)
+ * <X prop="1" /> => React.createElement(X, {prop: '1'}, null)
+ * <X prop="2"><Y /></X> => React.createElement(X, {prop:'2'},
+ *   React.createElement(Y, null)
+ * )
+ * <div /> => React.createElement("div", null)
  */
 
-var JSX_ATTRIBUTE_TRANSFORMS = {
-  cxName: function(attr) {
-    throw new Error(
-      "cxName is no longer supported, use className={cx(...)} instead"
-    );
-  }
-};
+/**
+ * Removes all non-whitespace/parenthesis characters
+ */
+var reNonWhiteParen = /([^\s\(\)])/g;
+function stripNonWhiteParen(value) {
+  return value.replace(reNonWhiteParen, '');
+}
+
+var tagConvention = /^[a-z]|\-/;
+function isTagName(name) {
+  return tagConvention.test(name);
+}
 
 var mParts = {
-  startTag: function(tagFunc) { return tagFunc + '("' },
-  endTag: function() { return ')' },
-  startAttrs: function() { return ',' },
-  startChildren: function() { return ', [' }
+  // We assume that the Mithril runtime is already in scope
+  startTag: 'm(',
+  endTag: ')',
+  startAttrs: ', ',
+  startChildren: ', ['
 };
 
-var preCompileParts = {
-  startTag: function() { return '{tag: "' },
-  endTag: function() { return '}' },
-  startAttrs: function() { return ', attrs:' },
-  // mithril expects an "attrs" property on pre-compiled templates
-  emptyAttrs: function() { return ', attrs: {}' },
-  startChildren: function() { return ', children: [' }
+var precompileParts = {
+  startTag: '{tag: ',
+  endTag: '}',
+  startAttrs: ', attrs: ',
+  startChildren: ', children: ['
 };
 
 function visitReactTag(precompile, traverse, object, path, state) {
-  var parts = precompile ? preCompileParts : mParts;
-  var mObjIdent = utils.getDocblock(state).jsx;
+  var parts = precompile ? precompileParts : mParts;
   var openingElement = object.openingElement;
   var nameObject = openingElement.name;
   var attributesObject = openingElement.attributes;
 
-  utils.catchup(openingElement.range[0], state);
+  utils.catchup(openingElement.range[0], state, trimLeft);
 
-  if (nameObject.namespace) {
+  if (nameObject.type === Syntax.XJSNamespacedName && nameObject.namespace) {
+    throw new Error('Namespace tags are not supported. JSX is not XML.');
+  }
+
+  // Identifiers with lower case or hyphens are fallback tags (strings).
+  // XJSMemberExpressions are not.
+  if (nameObject.type === Syntax.XJSIdentifier
+      /* @msx Revisit when Mithril component support lands
+      && isTagName(nameObject.name)
+      */) {
+    // This is a temporary error message to assist upgrades
+    if (!FALLBACK_TAGS.hasOwnProperty(nameObject.name)) {
+      /* @msx Revisit when Mithril component support lands
+      throw new Error(
+        'Lower case component names (' + nameObject.name + ') are no longer ' +
+        'supported in JSX: See http://fb.me/react-jsx-lower-case'
+      );
+      */
+      parts = mParts
+    }
+  } else {
+    // XXX Revisit when Mithril component support lands
     throw new Error(
-       'Namespace tags are not supported. ReactJSX is not XML.');
+      'Mithril does not currently support passing objects as tag selectors: ' +
+      'See https://lhorie.github.io/mithril/mithril.html#usage'
+    )
+    /* @msx Revisit when Mithril component support lands
+    // Use utils.catchup in this case so we can easily handle
+    // XJSMemberExpressions which look like Foo.Bar.Baz. This also handles
+    // XJSIdentifiers that aren't fallback tags.
+    utils.move(nameObject.range[0], state);
+    utils.catchup(nameObject.range[1], state);
+    */
   }
 
-  var isFallbackTag = FALLBACK_TAGS.hasOwnProperty(nameObject.name);
-  if (!isFallbackTag) {
-    // Always generate m() calls for unknown tag names
-    parts = mParts;
-  }
-  utils.append(
-    parts.startTag(mObjIdent) + nameObject.name + '"',
-    state
-  );
-
+  utils.append(parts.startTag, state);
+  utils.append('"' + nameObject.name + '"', state);
   utils.move(nameObject.range[1], state);
 
-  // if we have some attributes, add a comma
-  if (attributesObject.length > 0) {
-    utils.append(parts.startAttrs(), state);
-  } else if ('emptyAttrs' in parts) {
-    utils.append(parts.emptyAttrs(), state);
+  var hasAttributes = attributesObject.length;
+
+  var hasAtLeastOneSpreadProperty = attributesObject.some(function(attr) {
+    return attr.type === Syntax.XJSSpreadAttribute;
+  });
+
+  // Mithril expects an "attrs" property on pre-compiled templates
+  if (hasAtLeastOneSpreadProperty || hasAttributes || parts === precompileParts) {
+    utils.append(parts.startAttrs, state)
   }
+
+  if (hasAtLeastOneSpreadProperty) {
+    utils.append('Object.assign({', state);
+  } else if (hasAttributes) {
+    utils.append('{', state);
+  } else if (parts === precompileParts) {
+    utils.append('{}', state);
+  }
+
+  // keep track of if the previous attribute was a spread attribute
+  var previousWasSpread = false;
 
   // write attributes
   attributesObject.forEach(function(attr, index) {
-    utils.catchup(attr.range[0], state);
-    if (attr.name.namespace) {
-      throw new Error(
-         'Namespace attributes are not supported. ReactJSX is not XML.');
-    }
-    var name = attr.name.name;
-    var isFirst = index === 0;
     var isLast = index === attributesObject.length - 1;
 
-    if (isFirst) {
+    if (attr.type === Syntax.XJSSpreadAttribute) {
+      // Close the previous object or initial object
+      if (!previousWasSpread) {
+        utils.append('}, ', state);
+      }
+
+      // Move to the expression start, ignoring everything except parenthesis
+      // and whitespace.
+      utils.catchup(attr.range[0], state, stripNonWhiteParen);
+      // Plus 1 to skip `{`.
+      utils.move(attr.range[0] + 1, state);
+      utils.catchup(attr.argument.range[0], state, stripNonWhiteParen);
+
+      traverse(attr.argument, path, state);
+
+      utils.catchup(attr.argument.range[1], state);
+
+      // Move to the end, ignoring parenthesis and the closing `}`
+      utils.catchup(attr.range[1] - 1, state, stripNonWhiteParen);
+
+      if (!isLast) {
+        utils.append(',', state);
+      }
+
+      utils.move(attr.range[1], state);
+
+      previousWasSpread = true;
+
+      return;
+    }
+
+    // If the next attribute is a spread, we're effective last in this object
+    if (!isLast) {
+      isLast = attributesObject[index + 1].type === Syntax.XJSSpreadAttribute;
+    }
+
+    if (attr.name.namespace) {
+      throw new Error(
+         'Namespace attributes are not supported. JSX is not XML.');
+    }
+    var name = attr.name.name;
+
+    utils.catchup(attr.range[0], state, trimLeft);
+
+    if (previousWasSpread) {
       utils.append('{', state);
     }
 
@@ -128,31 +190,32 @@ function visitReactTag(precompile, traverse, object, path, state) {
       }
     } else {
       utils.move(attr.name.range[1], state);
-      // Use catchupWhiteSpace to skip over the '=' in the attribute
-      utils.catchupWhiteSpace(attr.value.range[0], state);
-      if (JSX_ATTRIBUTE_TRANSFORMS.hasOwnProperty(attr.name.name)) {
-        utils.append(JSX_ATTRIBUTE_TRANSFORMS[attr.name.name](attr), state);
-        utils.move(attr.value.range[1], state);
-        if (!isLast) {
-          utils.append(',', state);
-        }
-      } else if (attr.value.type === Syntax.Literal) {
+      // Use catchupNewlines to skip over the '=' in the attribute
+      utils.catchupNewlines(attr.value.range[0], state);
+      if (attr.value.type === Syntax.Literal) {
         renderXJSLiteral(attr.value, isLast, state);
       } else {
         renderXJSExpressionContainer(traverse, attr.value, isLast, path, state);
       }
     }
 
-    if (isLast) {
-      utils.append('}', state);
-    }
+    utils.catchup(attr.range[1], state, trimLeft);
 
-    utils.catchup(attr.range[1], state);
+    previousWasSpread = false;
+
   });
 
   if (!openingElement.selfClosing) {
-    utils.catchup(openingElement.range[1] - 1, state);
+    utils.catchup(openingElement.range[1] - 1, state, trimLeft);
     utils.move(openingElement.range[1], state);
+  }
+
+  if (hasAttributes && !previousWasSpread) {
+    utils.append('}', state);
+  }
+
+  if (hasAtLeastOneSpreadProperty) {
+    utils.append(')', state);
   }
 
   // filter out whitespace
@@ -162,7 +225,7 @@ function visitReactTag(precompile, traverse, object, path, state) {
              && child.value.match(/^[ \t]*[\r\n][ \t\r\n]*$/));
   });
 
-  var renderedChildren = false;
+  var hasChildren = false;
   if (childrenToRender.length > 0) {
     var lastRenderableIndex;
 
@@ -174,12 +237,12 @@ function visitReactTag(precompile, traverse, object, path, state) {
     });
 
     if (lastRenderableIndex !== undefined) {
-      utils.append(parts.startChildren(), state);
-      renderedChildren = true;
+      utils.append(parts.startChildren, state);
+      hasChildren = true;
     }
 
     childrenToRender.forEach(function(child, index) {
-      utils.catchup(child.range[0], state);
+      utils.catchup(child.range[0], state, trimLeft);
 
       var isLast = index >= lastRenderableIndex;
 
@@ -190,36 +253,33 @@ function visitReactTag(precompile, traverse, object, path, state) {
       } else {
         traverse(child, path, state);
         if (!isLast) {
-          utils.append(',', state);
-          state.g.buffer = state.g.buffer.replace(/(\s*),$/, ',$1');
+          utils.append(', ', state);
         }
       }
 
-      utils.catchup(child.range[1], state);
+      utils.catchup(child.range[1], state, trimLeft);
     });
   }
 
   if (openingElement.selfClosing) {
     // everything up to />
-    utils.catchup(openingElement.range[1] - 2, state);
+    utils.catchup(openingElement.range[1] - 2, state, trimLeft);
     utils.move(openingElement.range[1], state);
   } else {
     // everything up to </ sdflksjfd>
-    utils.catchup(object.closingElement.range[0], state);
+    utils.catchup(object.closingElement.range[0], state, trimLeft);
     utils.move(object.closingElement.range[1], state);
   }
 
-  if (renderedChildren) {
+  if (hasChildren) {
     utils.append(']', state);
   }
-  utils.append(parts.endTag(), state);
+  utils.append(parts.endTag, state);
   return false;
 }
 
 visitReactTag.test = function(object, path, state) {
-  // only run react when react @jsx namespace is specified in docblock
-  var jsx = utils.getDocblock(state).jsx;
-  return object.type === Syntax.XJSElement && jsx && jsx.length;
+  return object.type === Syntax.XJSElement;
 };
 
 exports.visitorList = [
