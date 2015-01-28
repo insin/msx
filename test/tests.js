@@ -20,7 +20,7 @@ test('tag variations (default options)', function(t) {
   }
   var tags = Object.keys(tagTests)
   tags.forEach(function(tag) {
-    var result = transform('/** @jsx m */\n' + tag).split('\n').pop()
+    var result = transform(tag).split('\n').pop()
     t.equal(result, tagTests[tag], tag + ' -> ' + tagTests[tag])
   })
 })
@@ -43,7 +43,7 @@ test('tag variations (precompile: false)', function(t) {
   }
   var tags = Object.keys(tagTests)
   tags.forEach(function(tag) {
-    var result = transform('/** @jsx m */\n' + tag, {precompile: false}).split('\n').pop()
+    var result = transform(tag, {precompile: false}).split('\n').pop()
     t.equal(result, tagTests[tag], tag + ' -> ' + tagTests[tag])
   })
 })
