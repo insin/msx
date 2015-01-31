@@ -32,7 +32,7 @@ effectively [precompiles](http://lhorie.github.io/mithril/optimizing-performance
 your templates for a slight performance tweak.
 
 For unknown tag names, an `m()` call will always be generated. This should allow
-you to use msx if you're also using
+you to use MSX if you're also using
 [Mithril.Elements](https://github.com/philtoms/mithril.elements) to implement
 custom types.
 
@@ -106,5 +106,12 @@ Example inputs (using some ES6 features) and outputs are in
 
 An example [gulpfile.js](https://github.com/insin/msx/blob/master/gulpfile.js)
 is provided, which implements an `msxTransform()` step using `msx.transform()`.
+
+## Related Modules
+
+* [gulp-msx](https://github.com/insin/gulp-msx) - gulp plugin.
+* [grunt-msx](https://github.com/hung-phan/grunt-msx) - grunt plugin.
+* [mithrilify](https://github.com/sectore/mithrilify) - browserify transform.
+* [msx-loader](https://github.com/sdemjanenko/msx-loader) - webpack loader.
 
 ## MIT Licensed
