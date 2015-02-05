@@ -18,13 +18,13 @@ var m = (function app(window, undefined) {
 	initialize(window);
 
 
-	/*
+	/**
 	 * @typedef {String} Tag
 	 * A string that looks like -> div.classname#id[param=one][param2=two]
 	 * Which describes a DOM node
 	 */
 
-	/*
+	/**
 	 *
 	 * @param {Tag} The DOM node tag
 	 * @param {Object=[]} optional key-value pairs to be mapped to DOM attrs
@@ -60,7 +60,9 @@ var m = (function app(window, undefined) {
 		}
 
 		for (var attrName in attrs) {
-			if (attrName === classAttrName) cell.attrs[attrName] = (cell.attrs[attrName] || "") + " " + attrs[attrName];
+			if (attrName === classAttrName) {
+				if (attrs[attrName] !== "") cell.attrs[attrName] = (cell.attrs[attrName] || "") + " " + attrs[attrName];
+			}
 			else cell.attrs[attrName] = attrs[attrName]
 		}
 		return cell
@@ -156,7 +158,7 @@ var m = (function app(window, undefined) {
 									action: MOVE,
 									index: i,
 									from: existing[key].index,
-									element: parentElement.childNodes[existing[key].index] || $document.createElement("div")
+									element: cached.nodes[existing[key].index] || $document.createElement("div")
 								}
 							}
 							else unkeyed.push({index: i, element: parentElement.childNodes[i] || $document.createElement("div")})
@@ -506,8 +508,8 @@ var m = (function app(window, undefined) {
 			m.redraw.strategy("all");
 			m.startComputation();
 			roots[index] = root;
-			var currentModule = topModule = module;
-			var controller = new module.controller;
+			var currentModule = topModule = module = module || {};
+			var controller = new (module.controller || function() {});
 			//controllers may call m.module recursively (via m.route redirects, for example)
 			//this conditional ensures only the last recursive m.module call is applied
 			if (currentModule === topModule) {
@@ -535,11 +537,12 @@ var m = (function app(window, undefined) {
 		}
 	};
 	m.redraw.strategy = m.prop();
+	var blank = function() {return ""}
 	function redraw() {
 		var forceRedraw = m.redraw.strategy() === "all";
 		for (var i = 0, root; root = roots[i]; i++) {
 			if (controllers[i]) {
-				m.render(root, modules[i].view(controllers[i]), forceRedraw)
+				m.render(root, modules[i].view ? modules[i].view(controllers[i]) : blank(), forceRedraw)
 			}
 		}
 		//after rendering within a routed context, we need to scroll back to the top, and fetch the document title for history.pushState
@@ -591,8 +594,10 @@ var m = (function app(window, undefined) {
 			};
 			var listener = m.route.mode === "hash" ? "onhashchange" : "onpopstate";
 			window[listener] = function() {
-				if (currentRoute != normalizeRoute($location[m.route.mode])) {
-					redirect($location[m.route.mode])
+				var path = $location[m.route.mode]
+				if (m.route.mode === "pathname") path += $location.search
+				if (currentRoute != normalizeRoute(path)) {
+					redirect(path)
 				}
 			};
 			computePostRedrawHook = setScroll;
@@ -609,6 +614,7 @@ var m = (function app(window, undefined) {
 		}
 		//m.route(route, params)
 		else if (type.call(arguments[0]) === STRING) {
+			var oldRoute = currentRoute;
 			currentRoute = arguments[0];
 			var args = arguments[1] || {}
 			var queryIndex = currentRoute.indexOf("?")
@@ -618,7 +624,7 @@ var m = (function app(window, undefined) {
 			var currentPath = queryIndex > -1 ? currentRoute.slice(0, queryIndex) : currentRoute
 			if (querystring) currentRoute = currentPath + (currentPath.indexOf("?") === -1 ? "?" : "&") + querystring;
 
-			var shouldReplaceHistoryEntry = (arguments.length === 3 ? arguments[2] : arguments[1]) === true;
+			var shouldReplaceHistoryEntry = (arguments.length === 3 ? arguments[2] : arguments[1]) === true || oldRoute === arguments[0];
 
 			if (window.history.pushState) {
 				computePostRedrawHook = function() {
@@ -635,7 +641,9 @@ var m = (function app(window, undefined) {
 		return routeParams[key]
 	};
 	m.route.mode = "search";
-	function normalizeRoute(route) {return route.slice(modes[m.route.mode].length)}
+	function normalizeRoute(route) {
+		return route.slice(modes[m.route.mode].length)
+	}
 	function routeByValue(root, router, path) {
 		routeParams = {};
 
@@ -681,20 +689,24 @@ var m = (function app(window, undefined) {
 		var str = [];
 		for(var prop in object) {
 			var key = prefix ? prefix + "[" + prop + "]" : prop, value = object[prop];
-			str.push(value != null && type.call(value) === OBJECT ? buildQueryString(value, key) : encodeURIComponent(key) + "=" + encodeURIComponent(value))
+			var valueType = type.call(value)
+			var pair = value != null && (valueType === OBJECT) ?
+				buildQueryString(value, key) :
+				valueType === ARRAY ?
+					value.map(function(item) {return encodeURIComponent(key + "[]") + "=" + encodeURIComponent(item)}).join("&") :
+					encodeURIComponent(key) + "=" + encodeURIComponent(value)
+			str.push(pair)
 		}
 		return str.join("&")
 	}
+	
 	function parseQueryString(str) {
 		var pairs = str.split("&"), params = {};
 		for (var i = 0, len = pairs.length; i < len; i++) {
 			var pair = pairs[i].split("=");
-			params[decodeSpace(pair[0])] = pair[1] ? decodeSpace(pair[1]) : ""
+			params[decodeURIComponent(pair[0])] = pair[1] ? decodeURIComponent(pair[1]) : ""
 		}
 		return params
-	}
-	function decodeSpace(string) {
-		return decodeURIComponent(string.replace(/\+/g, " "))
 	}
 	function reset(root) {
 		var cacheKey = getCellCacheKey(root);
@@ -877,7 +889,7 @@ var m = (function app(window, undefined) {
 			var script = $document.createElement("script");
 
 			window[callbackKey] = function(resp) {
-				$document.body.removeChild(script);
+				script.parentNode.removeChild(script);
 				options.onload({
 					type: "load",
 					target: {
@@ -888,7 +900,7 @@ var m = (function app(window, undefined) {
 			};
 
 			script.onerror = function(e) {
-				$document.body.removeChild(script);
+				script.parentNode.removeChild(script);
 
 				options.onerror({
 					type: "error",

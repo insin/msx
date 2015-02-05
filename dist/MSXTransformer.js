@@ -296,7 +296,7 @@ function loadScripts(scripts) {
 }
 
 /**
- * Find and run all script tags with type="text/jsx".
+ * Find and run all script tags with type="text/msx".
  *
  * @internal
  */
@@ -306,7 +306,7 @@ function runScripts() {
   // Array.prototype.slice cannot be used on NodeList on IE8
   var jsxScripts = [];
   for (var i = 0; i < scripts.length; i++) {
-    if (/^text\/jsx(;|$)/.test(scripts.item(i).type)) {
+    if (/^text\/msx(;|$)/.test(scripts.item(i).type)) {
       jsxScripts.push(scripts.item(i));
     }
   }
@@ -318,7 +318,7 @@ function runScripts() {
   console.warn(
     'You are using the in-browser JSX transformer. Be sure to precompile ' +
     'your JSX for production - ' +
-    'http://facebook.github.io/react/docs/tooling-integration.html#jsx'
+    'https://github.com/insin/msx/'
   );
 
   loadScripts(jsxScripts);
@@ -14490,8 +14490,7 @@ exports.visitorList = [
 
 },{"../src/utils":22,"esprima-fb":9}],34:[function(_dereq_,module,exports){
 /**
- * Copyright 2013-2014, Facebook, Inc.
- * All rights reserved.
+ * Copyright 2013-2014 Facebook, Inc.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
@@ -14535,7 +14534,16 @@ function isTagName(name) {
   return tagConvention.test(name);
 }
 
+var mParts = {
+  // We assume that the Mithril runtime is already in scope
+  startTag: 'm(',
+  endTag: ')',
+  startAttrs: ', ',
+  startChildren: ', ['
+};
+
 function visitReactTag(traverse, object, path, state) {
+  var parts = mParts;
   var openingElement = object.openingElement;
   var nameObject = openingElement.name;
   var attributesObject = openingElement.attributes;
@@ -14543,34 +14551,43 @@ function visitReactTag(traverse, object, path, state) {
   utils.catchup(openingElement.range[0], state, trimLeft);
 
   if (nameObject.type === Syntax.XJSNamespacedName && nameObject.namespace) {
-    throw new Error('Namespace tags are not supported. ReactJSX is not XML.');
+    throw new Error('Namespace tags are not supported. JSX is not XML.');
   }
 
-  // We assume that the React runtime is already in scope
-  utils.append('React.createElement(', state);
-
-  // Identifiers with lower case or hypthens are fallback tags (strings).
+  // Identifiers with lower case or hyphens are fallback tags (strings).
   // XJSMemberExpressions are not.
-  if (nameObject.type === Syntax.XJSIdentifier && isTagName(nameObject.name)) {
+  if (nameObject.type === Syntax.XJSIdentifier
+      /* @msx Revisit when Mithril component support lands
+      && isTagName(nameObject.name)
+      */) {
     // This is a temporary error message to assist upgrades
     if (!FALLBACK_TAGS.hasOwnProperty(nameObject.name)) {
+      /* @msx Revisit when Mithril component support lands
       throw new Error(
         'Lower case component names (' + nameObject.name + ') are no longer ' +
         'supported in JSX: See http://fb.me/react-jsx-lower-case'
       );
+      */
+      parts = mParts
     }
-
-    utils.append('"' + nameObject.name + '"', state);
-    utils.move(nameObject.range[1], state);
   } else {
+    // XXX Revisit when Mithril component support lands
+    throw new Error(
+      'Mithril does not currently support passing objects as tag selectors: ' +
+      'See https://lhorie.github.io/mithril/mithril.html#usage'
+    )
+    /* @msx Revisit when Mithril component support lands
     // Use utils.catchup in this case so we can easily handle
     // XJSMemberExpressions which look like Foo.Bar.Baz. This also handles
     // XJSIdentifiers that aren't fallback tags.
     utils.move(nameObject.range[0], state);
     utils.catchup(nameObject.range[1], state);
+    */
   }
 
-  utils.append(', ', state);
+  utils.append(parts.startTag, state);
+  utils.append('"' + nameObject.name + '"', state);
+  utils.move(nameObject.range[1], state);
 
   var hasAttributes = attributesObject.length;
 
@@ -14578,13 +14595,15 @@ function visitReactTag(traverse, object, path, state) {
     return attr.type === Syntax.XJSSpreadAttribute;
   });
 
-  // if we don't have any attributes, pass in null
+  // Mithril expects an "attrs" property on pre-compiled templates
+  if (hasAtLeastOneSpreadProperty || hasAttributes) {
+    utils.append(parts.startAttrs, state)
+  }
+
   if (hasAtLeastOneSpreadProperty) {
-    utils.append('React.__spread({', state);
+    utils.append('Object.assign({', state);
   } else if (hasAttributes) {
     utils.append('{', state);
-  } else {
-    utils.append('null', state);
   }
 
   // keep track of if the previous attribute was a spread attribute
@@ -14615,7 +14634,7 @@ function visitReactTag(traverse, object, path, state) {
       utils.catchup(attr.range[1] - 1, state, stripNonWhiteParen);
 
       if (!isLast) {
-        utils.append(', ', state);
+        utils.append(',', state);
       }
 
       utils.move(attr.range[1], state);
@@ -14632,7 +14651,7 @@ function visitReactTag(traverse, object, path, state) {
 
     if (attr.name.namespace) {
       throw new Error(
-         'Namespace attributes are not supported. ReactJSX is not XML.');
+         'Namespace attributes are not supported. JSX is not XML.');
     }
     var name = attr.name.name;
 
@@ -14643,13 +14662,13 @@ function visitReactTag(traverse, object, path, state) {
     }
 
     utils.append(quoteAttrName(name), state);
-    utils.append(': ', state);
+    utils.append(':', state);
 
     if (!attr.value) {
       state.g.buffer += 'true';
       state.g.position = attr.name.range[1];
       if (!isLast) {
-        utils.append(', ', state);
+        utils.append(',', state);
       }
     } else {
       utils.move(attr.name.range[1], state);
@@ -14687,6 +14706,8 @@ function visitReactTag(traverse, object, path, state) {
              && typeof child.value === 'string'
              && child.value.match(/^[ \t]*[\r\n][ \t\r\n]*$/));
   });
+
+  var hasChildren = false;
   if (childrenToRender.length > 0) {
     var lastRenderableIndex;
 
@@ -14698,7 +14719,8 @@ function visitReactTag(traverse, object, path, state) {
     });
 
     if (lastRenderableIndex !== undefined) {
-      utils.append(', ', state);
+      utils.append(parts.startChildren, state);
+      hasChildren = true;
     }
 
     childrenToRender.forEach(function(child, index) {
@@ -14731,7 +14753,10 @@ function visitReactTag(traverse, object, path, state) {
     utils.move(object.closingElement.range[1], state);
   }
 
-  utils.append(')', state);
+  if (hasChildren) {
+    utils.append(']', state);
+  }
+  utils.append(parts.endTag, state);
   return false;
 }
 
@@ -14742,6 +14767,7 @@ visitReactTag.test = function(object, path, state) {
 exports.visitorList = [
   visitReactTag
 ];
+
 
 },{"./xjs":36,"jstransform":21,"jstransform/src/utils":22}],35:[function(_dereq_,module,exports){
 /**

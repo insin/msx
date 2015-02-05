@@ -52,6 +52,17 @@ Other than that, the rest of React's JSX documentation should still apply:
   instead.
 * [If-Else in JSX](http://facebook.github.io/react/tips/if-else-in-JSX.html)
 
+### In-browser JSX Transform
+
+For development and quick prototyping, an in-browser JSX transform can be
+downloaded from the [dist/](https://github.com/insin/msx/blob/master/dist)
+directory. Simply include a `<script type="text/msx">` tag to engage the JSX
+transformer.
+
+To enable ES6 transforms, use `<script type="text/msx;harmony=true">`. Check out
+the [source](https://github.com/insin/msx/blob/master/demo/index.html) of the
+[example of using in-browser JSX + ES6 transforms](http://insin.github.io/msx/).
+
 ### Command Line Usage
 
 ```
