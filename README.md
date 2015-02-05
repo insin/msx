@@ -39,7 +39,7 @@ custom types.
 If you make use of [JSX Spread Attributes](http://facebook.github.io/react/docs/jsx-spread.html),
 the resulting code will make use of `Object.assign()` to merge attributes - if
 your code needs to run in environments which don't implement `Object.assign`
-natively, you're responsible ensuring it's available via a
+natively, you're responsible for ensuring it's available via a
 [shim](https://github.com/ljharb/object.assign), or otherwise.
 
 Other than that, the rest of React's JSX documentation should still apply:
