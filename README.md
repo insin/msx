@@ -54,14 +54,40 @@ Other than that, the rest of React's JSX documentation should still apply:
 
 ### In-browser JSX Transform
 
-For development and quick prototyping, an in-browser JSX transform can be
-downloaded from the [dist/](https://github.com/insin/msx/blob/master/dist)
-directory. Simply include a `<script type="text/msx">` tag to engage the JSX
-transformer.
+For development and quick prototyping, an in-browser MSX transform is available.
+
+Download or use it directly from cdn.rawgit.com:
+
+* https://cdn.rawgit.com/insin/msx/master/dist/MSXTransformer.js
+
+Simply include a `<script type="text/msx">` tag to engage the MSX transformer. 
 
 To enable ES6 transforms, use `<script type="text/msx;harmony=true">`. Check out
 the [source](https://github.com/insin/msx/blob/master/demo/index.html) of the
-[example of using in-browser JSX + ES6 transforms](http://insin.github.io/msx/).
+[live example of using in-browser JSX + ES6 transforms](http://insin.github.io/msx/).
+
+Here's a handy template you can use:
+
+```html
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mithril/0.1.30/mithril.js"></script>
+<script src="https://cdn.rawgit.com/insin/msx/master/dist/MSXTransformer.js"></script>
+<script type="text/msx;harmony=true">void function() { 'use strict';
+
+var Hello = {
+  controller() {
+    this.who = m.prop('World')
+  },
+
+  view(ctrl) {
+    return <h1>Hello {ctrl.who()}!</h1>
+  }
+}
+
+m.module(document.body, Hello)
+
+}()</script>
+```
 
 ### Command Line Usage
 
