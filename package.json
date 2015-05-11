@@ -5,14 +5,14 @@
   "main": "main.js",
   "dependencies": {
     "commoner": "^0.10.0",
-    "jstransform": "^8.2.0"
+    "jstransform": "^10.1.0"
   },
   "devDependencies": {
-    "gulp": "~3.8.10",
-    "gulp-plumber": "^0.6.6",
-    "gulp-util": "~3.0.2",
-    "tape": "^3.4.0",
-    "through2": "~0.6.3"
+    "gulp": "^3.8.11",
+    "gulp-plumber": "^1.0.0",
+    "gulp-util": "^3.0.4",
+    "tape": "^4.0.0",
+    "through2": "^0.6.5"
   },
   "keywords": [
     "jsx",

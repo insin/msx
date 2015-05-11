@@ -1,23 +1,23 @@
 /**
- * Copyright 2013-2014 Facebook, Inc.
+ * Copyright 2013-2015, Facebook, Inc.
+ * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  */
+'use strict';
+
 /*global exports:true*/
-"use strict";
 
 var Syntax = require('jstransform').Syntax;
 var utils = require('jstransform/src/utils');
 
-var FALLBACK_TAGS = require('./xjs').knownTags;
-var renderXJSExpressionContainer =
-  require('./xjs').renderXJSExpressionContainer;
-var renderXJSLiteral = require('./xjs').renderXJSLiteral;
-var quoteAttrName = require('./xjs').quoteAttrName;
+var renderJSXExpressionContainer = require('./jsx').renderJSXExpressionContainer;
+var renderJSXLiteral = require('./jsx').renderJSXLiteral;
+var quoteAttrName = require('./jsx').quoteAttrName;
 
-var trimLeft = require('./xjs').trimLeft;
+var trimLeft = require('./jsx').trimLeft;
 
 /**
  * Customized desugar processor for React JSX. Currently:
@@ -43,19 +43,29 @@ function isTagName(name) {
   return tagConvention.test(name);
 }
 
+// We assume that the Mithril runtime is already in scope
 var mParts = {
-  // We assume that the Mithril runtime is already in scope
   startTag: 'm(',
   endTag: ')',
   startAttrs: ', ',
-  startChildren: ', ['
+  startChildren: ', [',
+  endChildren: ']'
+};
+
+var componentParts = {
+  startTag: 'm.component(',
+  endTag: ')',
+  startAttrs: ', ',
+  startChildren: ', [',
+  endChildren: ']'
 };
 
 var precompileParts = {
   startTag: '{tag: ',
   endTag: '}',
   startAttrs: ', attrs: ',
-  startChildren: ', children: ['
+  startChildren: ', children: [',
+  endChildren: ']'
 };
 
 function visitReactTag(precompile, traverse, object, path, state) {
@@ -66,61 +76,61 @@ function visitReactTag(precompile, traverse, object, path, state) {
 
   utils.catchup(openingElement.range[0], state, trimLeft);
 
-  if (nameObject.type === Syntax.XJSNamespacedName && nameObject.namespace) {
+  if (nameObject.type === Syntax.JSXNamespacedName && nameObject.namespace) {
     throw new Error('Namespace tags are not supported. JSX is not XML.');
   }
-
-  // Identifiers with lower case or hyphens are fallback tags (strings).
-  // XJSMemberExpressions are not.
-  if (nameObject.type === Syntax.XJSIdentifier
-      /* @msx Revisit when Mithril component support lands
-      && isTagName(nameObject.name)
-      */) {
-    // This is a temporary error message to assist upgrades
-    if (!FALLBACK_TAGS.hasOwnProperty(nameObject.name)) {
-      /* @msx Revisit when Mithril component support lands
-      throw new Error(
-        'Lower case component names (' + nameObject.name + ') are no longer ' +
-        'supported in JSX: See http://fb.me/react-jsx-lower-case'
-      );
-      */
-      parts = mParts
-    }
-  } else {
-    // XXX Revisit when Mithril component support lands
-    throw new Error(
-      'Mithril does not currently support passing objects as tag selectors: ' +
-      'See https://lhorie.github.io/mithril/mithril.html#usage'
-    )
-    /* @msx Revisit when Mithril component support lands
-    // Use utils.catchup in this case so we can easily handle
-    // XJSMemberExpressions which look like Foo.Bar.Baz. This also handles
-    // XJSIdentifiers that aren't fallback tags.
-    utils.move(nameObject.range[0], state);
-    utils.catchup(nameObject.range[1], state);
-    */
-  }
-
-  utils.append(parts.startTag, state);
-  utils.append('"' + nameObject.name + '"', state);
-  utils.move(nameObject.range[1], state);
 
   var hasAttributes = attributesObject.length;
 
   var hasAtLeastOneSpreadProperty = attributesObject.some(function(attr) {
-    return attr.type === Syntax.XJSSpreadAttribute;
+    return attr.type === Syntax.JSXSpreadAttribute;
   });
 
+  // filter out whitespace
+  var childrenToRender = object.children.filter(function(child) {
+    return !(child.type === Syntax.Literal
+             && typeof child.value === 'string'
+             && child.value.match(/^[ \t]*[\r\n][ \t\r\n]*$/));
+  });
+
+  var lastRenderableIndex;
+
+  childrenToRender.forEach(function(child, index) {
+    if (child.type !== Syntax.JSXExpressionContainer ||
+        child.expression.type !== Syntax.JSXEmptyExpression) {
+      lastRenderableIndex = index;
+    }
+  });
+
+  var hasChildren = lastRenderableIndex !== undefined;
+
+  if (nameObject.type === Syntax.JSXIdentifier && isTagName(nameObject.name)) {
+    utils.append(parts.startTag, state);
+    utils.append('"' + nameObject.name + '"', state);
+    utils.move(nameObject.range[1], state);
+  } else {
+    parts = componentParts;
+    // Use utils.catchup in this case so we can easily handle
+    // JSXMemberExpressions which look like Foo.Bar.Baz. This also handles
+    // JSXIdentifiers that aren't fallback tags.
+    if (hasAttributes || hasChildren) {
+      utils.append(parts.startTag, state);
+    }
+    utils.move(nameObject.range[0], state);
+    utils.catchup(nameObject.range[1], state);
+  }
+
   // Mithril expects an "attrs" property on pre-compiled templates
-  if (hasAtLeastOneSpreadProperty || hasAttributes || parts === precompileParts) {
+  if (hasAttributes || parts === precompileParts || parts === componentParts && hasChildren) {
     utils.append(parts.startAttrs, state)
   }
 
   if (hasAtLeastOneSpreadProperty) {
+    // We assume that Object.assign is available to merge spread attributes
     utils.append('Object.assign({', state);
   } else if (hasAttributes) {
     utils.append('{', state);
-  } else if (parts === precompileParts) {
+  } else if (parts === precompileParts || parts === componentParts && hasChildren) {
     utils.append('{}', state);
   }
 
@@ -131,7 +141,7 @@ function visitReactTag(precompile, traverse, object, path, state) {
   attributesObject.forEach(function(attr, index) {
     var isLast = index === attributesObject.length - 1;
 
-    if (attr.type === Syntax.XJSSpreadAttribute) {
+    if (attr.type === Syntax.JSXSpreadAttribute) {
       // Close the previous object or initial object
       if (!previousWasSpread) {
         utils.append('}, ', state);
@@ -164,7 +174,7 @@ function visitReactTag(precompile, traverse, object, path, state) {
 
     // If the next attribute is a spread, we're effective last in this object
     if (!isLast) {
-      isLast = attributesObject[index + 1].type === Syntax.XJSSpreadAttribute;
+      isLast = attributesObject[index + 1].type === Syntax.JSXSpreadAttribute;
     }
 
     if (attr.name.namespace) {
@@ -193,16 +203,15 @@ function visitReactTag(precompile, traverse, object, path, state) {
       // Use catchupNewlines to skip over the '=' in the attribute
       utils.catchupNewlines(attr.value.range[0], state);
       if (attr.value.type === Syntax.Literal) {
-        renderXJSLiteral(attr.value, isLast, state);
+        renderJSXLiteral(attr.value, isLast, state);
       } else {
-        renderXJSExpressionContainer(traverse, attr.value, isLast, path, state);
+        renderJSXExpressionContainer(traverse, attr.value, isLast, path, state);
       }
     }
 
     utils.catchup(attr.range[1], state, trimLeft);
 
     previousWasSpread = false;
-
   });
 
   if (!openingElement.selfClosing) {
@@ -218,27 +227,9 @@ function visitReactTag(precompile, traverse, object, path, state) {
     utils.append(')', state);
   }
 
-  // filter out whitespace
-  var childrenToRender = object.children.filter(function(child) {
-    return !(child.type === Syntax.Literal
-             && typeof child.value === 'string'
-             && child.value.match(/^[ \t]*[\r\n][ \t\r\n]*$/));
-  });
-
-  var hasChildren = false;
   if (childrenToRender.length > 0) {
-    var lastRenderableIndex;
-
-    childrenToRender.forEach(function(child, index) {
-      if (child.type !== Syntax.XJSExpressionContainer ||
-          child.expression.type !== Syntax.XJSEmptyExpression) {
-        lastRenderableIndex = index;
-      }
-    });
-
     if (lastRenderableIndex !== undefined) {
       utils.append(parts.startChildren, state);
-      hasChildren = true;
     }
 
     childrenToRender.forEach(function(child, index) {
@@ -247,9 +238,9 @@ function visitReactTag(precompile, traverse, object, path, state) {
       var isLast = index >= lastRenderableIndex;
 
       if (child.type === Syntax.Literal) {
-        renderXJSLiteral(child, isLast, state);
-      } else if (child.type === Syntax.XJSExpressionContainer) {
-        renderXJSExpressionContainer(traverse, child, isLast, path, state);
+        renderJSXLiteral(child, isLast, state);
+      } else if (child.type === Syntax.JSXExpressionContainer) {
+        renderJSXExpressionContainer(traverse, child, isLast, path, state);
       } else {
         traverse(child, path, state);
         if (!isLast) {
@@ -272,14 +263,16 @@ function visitReactTag(precompile, traverse, object, path, state) {
   }
 
   if (hasChildren) {
-    utils.append(']', state);
+    utils.append(parts.endChildren, state);
   }
-  utils.append(parts.endTag, state);
+  if (parts !== componentParts || hasAttributes || hasChildren) {
+    utils.append(parts.endTag, state);
+  }
   return false;
 }
 
 visitReactTag.test = function(object, path, state) {
-  return object.type === Syntax.XJSElement;
+  return object.type === Syntax.JSXElement;
 };
 
 exports.visitorList = [

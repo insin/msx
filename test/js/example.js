@@ -37,14 +37,14 @@ todo.controller = function() {
 todo.view = function(ctrl) {
   return {tag: "html", attrs: {}, children: [
     {tag: "body", attrs: {}, children: [
-      {tag: "input", attrs: {onchange:m.withAttr("value", ctrl.description),value:ctrl.description()}}, 
+      {tag: "input", attrs: {onchange:m.withAttr("value", ctrl.description), value:ctrl.description()}}, 
       {tag: "button", attrs: {onclick:ctrl.add.bind(ctrl, ctrl.description)}, children: ["Add"]}, 
       {tag: "table", attrs: {}, children: [
         ctrl.list.map(function(task, index)  {return {tag: "tr", attrs: {}, children: [
           {tag: "td", attrs: {}, children: [
             {tag: "input", attrs: {
-              type:"checkbox",
-              onclick:m.withAttr("checked", task.done),
+              type:"checkbox", 
+              onclick:m.withAttr("checked", task.done), 
               checked:task.done()}
              }
           ]}, 

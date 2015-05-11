@@ -1,3 +1,18 @@
+* Mithril 0.2 component support:
+  * `<TitleCase>` and `<nested.object>` tags are now treated as Mithril
+    components - `<lowercase>` and `<lowercase-hyphenated>` tags are treated as
+    regular tags.
+  * Component attributes will be passed as the second argument to
+    `m.component()`.
+  * Component child contents will be wrapped in an array and passed as the third
+    argument to `m.component()`.
+
+* Merged in changes since JSX Transformer 0.12.2 up to the last version before
+  React's visitors were moved into jstransform itself.
+  * Removed hardcoded list of known tags. Any lowercase name, allowing for
+    hyphenation, is now accepted as an HTML tag.
+  * New transforms: es6-call-spread, reserved-words
+
 ## 0.3.0 / 2015-01-27
 
 * Changed license back to MIT, now that React is licensed under BSD.

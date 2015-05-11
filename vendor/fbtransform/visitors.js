@@ -1,14 +1,25 @@
 /*global exports:true*/
-var es6ArrowFunctions = require('jstransform/visitors/es6-arrow-function-visitors');
+
+'use strict';
+
+var es6ArrowFunctions =
+  require('jstransform/visitors/es6-arrow-function-visitors');
 var es6Classes = require('jstransform/visitors/es6-class-visitors');
-var es6Destructuring = require('jstransform/visitors/es6-destructuring-visitors');
-var es6ObjectConciseMethod = require('jstransform/visitors/es6-object-concise-method-visitors');
-var es6ObjectShortNotation = require('jstransform/visitors/es6-object-short-notation-visitors');
+var es6Destructuring =
+  require('jstransform/visitors/es6-destructuring-visitors');
+var es6ObjectConciseMethod =
+  require('jstransform/visitors/es6-object-concise-method-visitors');
+var es6ObjectShortNotation =
+  require('jstransform/visitors/es6-object-short-notation-visitors');
 var es6RestParameters = require('jstransform/visitors/es6-rest-param-visitors');
 var es6Templates = require('jstransform/visitors/es6-template-visitors');
-var es7SpreadProperty = require('jstransform/visitors/es7-spread-property-visitors');
+var es6CallSpread =
+  require('jstransform/visitors/es6-call-spread-visitors');
+var es7SpreadProperty =
+  require('jstransform/visitors/es7-spread-property-visitors');
 var react = require('./transforms/react');
 var reactDisplayName = require('./transforms/reactDisplayName');
+var reservedWords = require('jstransform/visitors/reserved-words-visitors');
 
 /**
  * Map from transformName => orderedListOfVisitors.
@@ -21,8 +32,10 @@ var transformVisitors = {
   'es6-object-short-notation': es6ObjectShortNotation.visitorList,
   'es6-rest-params': es6RestParameters.visitorList,
   'es6-templates': es6Templates.visitorList,
+  'es6-call-spread': es6CallSpread.visitorList,
   'es7-spread-property': es7SpreadProperty.visitorList,
-  'react': react.visitorList.concat(reactDisplayName.visitorList)
+  'react': react.visitorList.concat(reactDisplayName.visitorList),
+  'reserved-words': reservedWords.visitorList
 };
 
 var transformSets = {
@@ -34,7 +47,11 @@ var transformSets = {
     'es6-rest-params',
     'es6-templates',
     'es6-destructuring',
+    'es6-call-spread',
     'es7-spread-property'
+  ],
+  'es3': [
+    'reserved-words'
   ],
   'react': [
     'react'
@@ -45,6 +62,7 @@ var transformSets = {
  * Specifies the order in which each transform should run.
  */
 var transformRunOrder = [
+  'reserved-words',
   'es6-arrow-functions',
   'es6-object-concise-method',
   'es6-object-short-notation',
@@ -52,6 +70,7 @@ var transformRunOrder = [
   'es6-rest-params',
   'es6-templates',
   'es6-destructuring',
+  'es6-call-spread',
   'es7-spread-property',
   'react'
 ];

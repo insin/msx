@@ -2,81 +2,111 @@
 <head>
   <meta charset="UTF-8">
   <title>MSX Transformer</title>
-  <script src="../test/vendor/mithril-0.1.30.js"></script>
+  <script src="../test/vendor/mithril-0.2.0.js"></script>
   <script src="../dist/MSXTransformer.js"></script>
 </head>
 <body>
+<div id="app"></div>
 <script type="text/msx;harmony=true">void function() { 'use strict';
 
 // JSX version of the Mithril Getting Started documentation's TODO example.
 // http://lhorie.github.io/mithril/getting-started.html
 
-//this application only has one module: todo
-var todo = {};
+//this application only has one component: todo
+var Todo = {};
 
-//for simplicity, we use this module to namespace the model classes
+//for simplicity, we use this component to namespace the model classes
 
 //the Todo class has two properties
-todo.Todo = (data) => {
+Todo.Todo = function(data) {
     this.description = m.prop(data.description);
     this.done = m.prop(false);
 };
 
 //the TodoList class is a list of Todo's
-todo.TodoList = Array;
+Todo.TodoList = Array;
 
 //the view-model tracks a running list of todos,
 //stores a description for new todos before they are created
 //and takes care of the logic surrounding when adding is permitted
 //and clearing the input after adding a todo to the list
-todo.vm = (() => {
+Todo.vm = (function() {
     var vm = {}
-    vm.init = () => {
+    vm.init = function() {
         //a running list of todos
-        vm.list = new todo.TodoList();
+        vm.list = new Todo.TodoList();
 
         //a slot to store the name of a new todo before it is created
         vm.description = m.prop("");
 
         //adds a todo to the list, and clears the description field for user convenience
-        vm.add = () => {
+        vm.add = function() {
             if (vm.description()) {
-                vm.list.push(new todo.Todo({description: vm.description()}));
+                vm.list.push(new Todo.Todo({description: vm.description()}));
                 vm.description("");
             }
         };
     }
     return vm
-})();
+}())
 
 //the controller defines what part of the model is relevant for the current page
 //in our case, there's only one view-model that handles everything
-todo.controller = () => {
-    todo.vm.init()
+Todo.controller = function() {
+    Todo.vm.init()
 }
 
 //here's the view
-todo.view = (ctrl) => {
-  return <html>
-    <body>
-      <input onchange={m.withAttr("value", todo.vm.description)} value={todo.vm.description()}/>
-      <button onclick={todo.vm.add}>Add</button>
-      <table>
-        {todo.vm.list.map((task, index) => <tr>
-          <td>
-            <input type="checkbox" onclick={m.withAttr("checked", task.done)} checked={task.done()}/>
-          </td>
-          <td style={{textDecoration: task.done() ? "line-through" : "none"}}>
-            {task.description()}
-          </td>
-        </tr>)}
-      </table>
-    </body>
-  </html>
+Todo.view = function() {
+  return <div>
+    <input onchange={m.withAttr("value", Todo.vm.description)} value={Todo.vm.description()}/>
+    <button onclick={Todo.vm.add}>Add</button>
+    <table>
+      {Todo.vm.list.map((task, index) => <tr>
+        <td>
+          <input type="checkbox" onclick={m.withAttr("checked", task.done)} checked={task.done()}/>
+        </td>
+        <td style={{textDecoration: task.done() ? "line-through" : "none"}}>
+          {task.description()}
+        </td>
+      </tr>)}
+    </table>
+  </div>
 };
 
+var Greetings = {
+  controller() {
+    return {
+      who: m.prop('Steve')
+    }
+  },
+  view(ctrl) {
+    return <div className="Greetings">
+      <input oninput={m.withAttr('value', ctrl.who)} value={ctrl.who()}/>
+      <Greeter who={ctrl.who()}/>
+    </div>
+  }
+}
+
+var Greeter = {
+  view(ctrl, attrs) {
+    return <h3>Hello, {attrs.who}</h3>
+  }
+}
+
+var App = {
+  view() {
+    return <div className="App">
+      <h2>TODO</h2>
+      <Todo/>
+      <h2>Greetings</h2>
+      <Greetings/>
+    </div>
+  }
+}
+
 //initialize the application
-m.module(document, {controller: todo.controller, view: todo.view});
+m.mount(document.getElementById('app'), App);
 
 }()</script>
 </body>
