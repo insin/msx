@@ -148,7 +148,7 @@ Download or use it directly from cdn.rawgit.com:
 
 * https://cdn.rawgit.com/insin/msx/master/dist/MSXTransformer.js
 
-Simply include a `<script type="text/msx">` tag to engage the MSX transformer. 
+Include a `<script type="text/msx">` tag to engage the MSX transformer.
 
 To enable ES6 transforms, use `<script type="text/msx;harmony=true">`. Check out
 the [source](https://github.com/insin/msx/blob/master/demo/index.html) of the
@@ -158,8 +158,9 @@ Here's a handy template you can use:
 
 ```html
 <meta charset="UTF-8">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mithril/0.1.30/mithril.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mithril/0.2.0/mithril.js"></script>
 <script src="https://cdn.rawgit.com/insin/msx/master/dist/MSXTransformer.js"></script>
+<div id="app"></div>
 <script type="text/msx;harmony=true">void function() { 'use strict';
 
 var Hello = {
@@ -172,7 +173,7 @@ var Hello = {
   }
 }
 
-m.module(document.body, Hello)
+m.mount(document.getElementById('app'), Hello)
 
 }()</script>
 ```
