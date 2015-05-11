@@ -1,3 +1,5 @@
+## 0.4.0 / 2015-05-11
+
 * Mithril 0.2 component support:
   * `<TitleCase>` and `<nested.object>` tags are now treated as Mithril
     components - `<lowercase>` and `<lowercase-hyphenated>` tags are treated as
