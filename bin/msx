@@ -46,7 +46,7 @@ require('commoner').version(
     harmony: this.options.harmony,
     sourceMap: this.options.sourceMapInline,
     stripTypes: this.options.stripTypes,
-    precompile: this.options.precompile
+    precompile: this.options.precompile,
     es6module: this.options.es6module,
     nonStrictEs6module: this.options.nonStrictEs6module,
     target: this.options.target

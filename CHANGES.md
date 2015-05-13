@@ -1,3 +1,7 @@
+## 0.4.1 / 2015-05-12
+
+* Fixed missing comma in bin script.
+
 ## 0.4.0 / 2015-05-11
 
 * Mithril 0.2 component support:
