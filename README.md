@@ -239,5 +239,6 @@ is provided, which implements an `msxTransform()` step using `msx.transform()`.
 * [grunt-msx](https://github.com/hung-phan/grunt-msx) - grunt plugin.
 * [mithrilify](https://github.com/sectore/mithrilify) - browserify transform.
 * [msx-loader](https://github.com/sdemjanenko/msx-loader) - webpack loader.
+* [babel-plugin-mjsx](https://github.com/Naddiseo/babel-plugin-mjsx) - babel transform
 
 ## MIT Licensed
