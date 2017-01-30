@@ -1,3 +1,11 @@
+# DEPRECATED
+
+As of Mithril.js v1.0.0, you can use the `react-transform-jsx` Babel plugin for JSX.
+
+See [Mithril.js' JSX documentation](http://mithril.js.org/jsx.html) for details.
+
+---
+
 # MSX [![Build Status](https://secure.travis-ci.org/insin/msx.png?branch=master)](http://travis-ci.org/insin/msx)
 
 *MSX is based on version 0.13.2 of React's JSX Transformer*
